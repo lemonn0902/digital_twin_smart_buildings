@@ -1,0 +1,524 @@
+/* App Shell Layout */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: radial-gradient(circle at top left, #1f2937, #020617);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.logo {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #e5e7eb;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-links a {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  color: #cbd5f5;
+  transition: all 0.2s;
+}
+
+.nav-links a:hover {
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.nav-links a.active {
+  background: linear-gradient(135deg, #4f46e5, #22c55e);
+  color: white;
+}
+
+.app-main {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.app-footer {
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+  background: #020617;
+  color: #9ca3af;
+}
+
+.app-footer a {
+  color: #cbd5f5;
+  text-decoration: underline;
+}
+
+.app-footer a:hover {
+  color: #22c55e;
+}
+
+/* Page Sections */
+section {
+  padding: 1rem 0;
+}
+
+section h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: #e5e7eb;
+}
+
+section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #e5e7eb;
+}
+
+section p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  color: #cbd5f5;
+}
+
+.twin-view .layout-summary,
+.simulation-summary {
+  margin-top: 1rem;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.analytics-section {
+  margin-bottom: 2rem;
+}
+
+/* Metric Selector */
+.metric-selector {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #1f2937;
+  border-radius: 8px;
+}
+
+.metric-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #cbd5f5;
+  font-weight: 500;
+}
+
+.metric-selector select {
+  padding: 0.5rem 1rem;
+  background: #111827;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 6px;
+  color: #e5e7eb;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.metric-selector select:hover {
+  border-color: #4f46e5;
+}
+
+.metric-selector select:focus {
+  outline: none;
+  border-color: #22c55e;
+}
+
+.no-suggestions {
+  padding: 2rem;
+  text-align: center;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Anomaly Display Styles */
+.anomaly-display {
+  padding: 1.5rem;
+  background: #1f2937;
+  border-radius: 8px;
+}
+
+.anomaly-display h2 {
+  margin-bottom: 1.5rem;
+}
+
+/* Suggestions Styles */
+.suggestions {
+  padding: 1.5rem;
+  background: #1f2937;
+  border-radius: 8px;
+}
+
+.suggestions h2 {
+  margin-bottom: 1.5rem;
+}
+
+/* Layout 3D Additional Styles */
+.layout-3d.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #9ca3af;
+}
+
+.layout-info {
+  margin-bottom: 1.5rem;
+}
+
+.layout-info p {
+  margin-bottom: 0.5rem;
+}
+
+.zones-list {
+  margin-top: 2rem;
+}
+
+.zones-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.zones-list li {
+  padding: 0.75rem;
+  background: #111827;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.neighbors {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+/* Dashboard Styles */
+.dashboard {
+  width: 100%;
+}
+
+.dashboard-charts {
+  margin-top: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .nav-links {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .app-main {
+    padding: 1rem;
+  }
+  
+  .app-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+
+
+/* Dashboard Styles */
+.dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #1f2937, #111827);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+}
+
+.metric-card h3 {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin: 0 0 0.5rem 0;
+}
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+/* Simulation Panel */
+.simulation-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #1f2937;
+  border-radius: 8px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #cbd5f5;
+  font-size: 0.9rem;
+}
+
+.control-group input,
+.control-group select {
+  width: 100%;
+  padding: 0.5rem;
+  background: #111827;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+  color: #e5e7eb;
+}
+
+.run-button {
+  grid-column: 1 / -1;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #4f46e5, #22c55e);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.run-button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.run-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+/* Anomaly Display */
+.anomaly-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.anomaly-count {
+  color: #ef4444;
+}
+
+.anomaly-list {
+  margin-top: 2rem;
+}
+
+.anomaly-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: #1f2937;
+  border-left: 3px solid #ef4444;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+}
+
+/* Suggestions */
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.suggestion-card {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #1f2937, #111827);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+}
+
+.suggestion-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.suggestion-icon {
+  font-size: 1.5rem;
+}
+
+.suggestion-type {
+  text-transform: capitalize;
+  font-weight: 600;
+  color: #cbd5f5;
+}
+
+.suggestion-description {
+  margin-bottom: 1rem;
+  color: #e5e7eb;
+  line-height: 1.6;
+}
+
+.suggestion-metrics {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.metric-value {
+  font-weight: 600;
+}
+
+.savings {
+  color: #22c55e;
+}
+
+.suggestion-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.action-button.primary {
+  background: linear-gradient(135deg, #4f46e5, #22c55e);
+  color: white;
+}
+
+.action-button.secondary {
+  background: #374151;
+  color: #e5e7eb;
+}
+
+.action-button:hover {
+  opacity: 0.9;
+}
+
+.total-savings {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #1f2937;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #22c55e;
+}
+
+/* Layout 3D */
+.layout-3d {
+  padding: 1.5rem;
+  background: #1f2937;
+  border-radius: 8px;
+}
+
+.zones-graph {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 2rem;
+  min-height: 300px;
+  align-items: center;
+  justify-content: center;
+}
+
+.zone-node {
+  position: relative;
+  background: linear-gradient(135deg, #4f46e5, #22c55e);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.zone-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.zone-details {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.chart-container {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #1f2937;
+  border-radius: 8px;
+}
+
+.chart-container h3 {
+  margin-bottom: 1rem;
+  color: #cbd5f5;
+}
