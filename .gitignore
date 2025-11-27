@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.env
+
+# Data (downloaded separately)
+data/raw/
+data/processed/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+dist/
+
+# Logs
+*.log
+
+# Models (trained locally)
+# Keep the model directory structure but not large model files
+# backend/models/anomaly/*.pkl
+# backend/models/anomaly/*.h5
+# backend/models/forecasting/*.pkl
+# backend/models/forecasting/*.h5
+
