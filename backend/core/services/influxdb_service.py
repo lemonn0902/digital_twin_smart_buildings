@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 import pandas as pd
 from influxdb_client import InfluxDBClient, Point, WritePrecision
@@ -104,11 +104,19 @@ def query_time_series(
     """
     try:
         query_api = get_query_api()
-        
+
+        if start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=timezone.utc)
+        if end_time.tzinfo is None:
+            end_time = end_time.replace(tzinfo=timezone.utc)
+
+        start_iso = start_time.astimezone(timezone.utc).isoformat()
+        end_iso = end_time.astimezone(timezone.utc).isoformat()
+
         # Build Flux query
         flux_query = f'''
         from(bucket: "{settings.influxdb_bucket}")
-          |> range(start: {start_time.isoformat()}, stop: {end_time.isoformat()})
+          |> range(start: time(v: "{start_iso}"), stop: time(v: "{end_iso}"))
           |> filter(fn: (r) => r["building_id"] == "{building_id}")
         '''
         

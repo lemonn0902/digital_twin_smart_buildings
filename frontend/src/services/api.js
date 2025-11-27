@@ -49,3 +49,15 @@ export async function fetchSuggestions(buildingId) {
   if (!res.ok) throw new Error("Failed to fetch suggestions");
   return res.json();
 }
+
+export async function fetchDashboardOverview(buildingId) {
+  const res = await fetch(`${BASE}/dashboard/overview/${buildingId}`);
+  if (!res.ok) throw new Error("Failed to load dashboard overview");
+  return res.json();
+}
+
+export async function fetchLatestMetrics(buildingId) {
+  const res = await fetch(`${BASE}/historical/latest/${buildingId}`);
+  if (!res.ok) throw new Error("Failed to load latest metrics");
+  return res.json();
+}

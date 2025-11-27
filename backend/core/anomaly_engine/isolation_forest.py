@@ -26,6 +26,16 @@ def _load_iforest() -> Optional[object]:
         return None
 
 
+@lru_cache(maxsize=1)
+def _load_scaler() -> Optional[object]:
+    """Load the feature scaler used during training."""
+    scaler_path = get_model_path("anomaly", "scaler.pkl")
+    try:
+        return joblib.load(scaler_path)
+    except Exception:
+        return None
+
+
 def isolation_forest_scores(
     df: pd.DataFrame, feature_cols: List[str]
 ) -> pd.Series:
@@ -45,6 +55,15 @@ def isolation_forest_scores(
         return pd.Series(0.0, index=df.index, name="if_score")
 
     x = df[feature_cols].to_numpy(dtype=np.float32)
+
+    scaler = _load_scaler()
+    if scaler is not None:
+        try:
+            x = scaler.transform(x)
+        except Exception:
+            # Shape mismatch, continue with raw values.
+            pass
+
     raw_scores = model.score_samples(x)
     scores = -raw_scores
     return pd.Series(scores, index=df.index, name="if_score")

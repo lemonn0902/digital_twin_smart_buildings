@@ -3,6 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import List, Optional
 
+import joblib
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -26,6 +27,16 @@ def _load_autoencoder() -> Optional[object]:
         return None
 
 
+@lru_cache(maxsize=1)
+def _load_scaler() -> Optional[object]:
+    """Load the feature scaler shared with IsolationForest."""
+    scaler_path = get_model_path("anomaly", "scaler.pkl")
+    try:
+        return joblib.load(scaler_path)
+    except Exception:
+        return None
+
+
 def autoencoder_reconstruction_error(
     df: pd.DataFrame, feature_cols: List[str]
 ) -> pd.Series:
@@ -44,6 +55,14 @@ def autoencoder_reconstruction_error(
         return pd.Series(0.0, index=df.index, name="ae_error")
 
     x = df[feature_cols].to_numpy(dtype=np.float32)
+
+    scaler = _load_scaler()
+    if scaler is not None:
+        try:
+            x = scaler.transform(x)
+        except Exception:
+            pass
+
     recon = model.predict(x, verbose=0)
     errors = np.mean((x - recon) ** 2, axis=1)
     return pd.Series(errors, index=df.index, name="ae_error")

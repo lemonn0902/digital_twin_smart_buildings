@@ -522,3 +522,178 @@ section p {
   margin-bottom: 1rem;
   color: #cbd5f5;
 }
+
+/* Monitoring dashboard */
+.monitoring-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.building-pill {
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(79, 70, 229, 0.15);
+  color: #cbd5f5;
+  font-size: 0.85rem;
+}
+
+.muted {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.kpi-card {
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1f2937, #111827);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.kpi-card.carbon {
+  border-color: rgba(20, 184, 166, 0.4);
+}
+
+.kpi-label {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-transform: capitalize;
+}
+
+.kpi-value {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.kpi-trend {
+  font-size: 0.85rem;
+}
+
+.kpi-trend.up {
+  color: #f97316;
+}
+
+.kpi-trend.down {
+  color: #22c55e;
+}
+
+.dashboard-charts-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.chart-card,
+.card {
+  padding: 1.25rem;
+  background: #1f2937;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.chart-card-header,
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-lower-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.alerts-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alert-card {
+  padding: 1rem;
+  border-radius: 10px;
+  background: #111827;
+  border-left: 4px solid #f59e0b;
+}
+
+.alert-card.critical {
+  border-left-color: #ef4444;
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+}
+
+.live-metrics-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.live-metric-row {
+  display: grid;
+  grid-template-columns: 1.2fr repeat(3, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+  background: #111827;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.live-zone {
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.live-metric span {
+  display: block;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.live-metric strong {
+  color: #e5e7eb;
+}
+
+.alerts-card h4 {
+  margin: 0.5rem 0;
+}
+
+.suggestions-card {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+@media (max-width: 640px) {
+  .live-metric-row {
+    grid-template-columns: 1fr;
+  }
+}
