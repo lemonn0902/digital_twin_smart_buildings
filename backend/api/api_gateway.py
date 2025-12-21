@@ -9,6 +9,7 @@ from .routes import (
     websocket_routes,
     historical_routes,
     dashboard_routes,
+    forecasting_routes,
 )
 
 
@@ -56,4 +57,9 @@ def include_api_routes(app: FastAPI) -> None:
         dashboard_routes.router,
         prefix="/dashboard",
         tags=["dashboard"],
+    )
+    app.include_router(
+        forecasting_routes.router,
+        prefix="/forecast",
+        tags=["forecasting"],
     )

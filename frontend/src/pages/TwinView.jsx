@@ -21,7 +21,7 @@ function TwinView() {
       <h1>Twin View</h1>
       
       <div className="twin-layout">
-        {layout && <Layout3D layout={layout} />}
+        {layout && <Layout3D layout={layout} buildingId="demo-building" />}
       </div>
       
       <div className="twin-simulation">

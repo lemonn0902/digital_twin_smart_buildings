@@ -61,3 +61,29 @@ export async function fetchLatestMetrics(buildingId) {
   if (!res.ok) throw new Error("Failed to load latest metrics");
   return res.json();
 }
+
+export async function fetchEnergyForecast(buildingId, horizonHours = 24) {
+  const res = await fetch(`${BASE}/forecast/energy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      building_id: buildingId,
+      horizon_hours: horizonHours,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to fetch energy forecast");
+  return res.json();
+}
+
+export async function fetchOccupancyForecast(buildingId, horizonHours = 12) {
+  const res = await fetch(`${BASE}/forecast/occupancy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      building_id: buildingId,
+      horizon_hours: horizonHours,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to fetch occupancy forecast");
+  return res.json();
+}

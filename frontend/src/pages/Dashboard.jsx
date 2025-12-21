@@ -12,6 +12,8 @@ import {
   Area,
 } from "recharts";
 import Suggestions from "../components/Suggestions/Suggestions";
+import ForecastChart from "../components/ForecastChart/ForecastChart";
+import OccupancyForecast from "../components/OccupancyForecast/OccupancyForecast";
 import {
   fetchDashboardOverview,
   fetchLatestMetrics,
@@ -265,6 +267,18 @@ function DashboardPage() {
                 <h3>Active Alerts</h3>
               </div>
               <AlertsPanel alerts={overview?.alerts || []} />
+            </div>
+          </div>
+
+          <div className="dashboard-charts-row">
+            <div className="chart-card">
+              <ForecastChart buildingId="demo-building" horizonHours={24} />
+            </div>
+          </div>
+
+          <div className="dashboard-charts-row">
+            <div className="chart-card">
+              <OccupancyForecast buildingId="demo-building" horizonHours={12} />
             </div>
           </div>
 
