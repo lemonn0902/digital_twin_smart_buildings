@@ -125,6 +125,12 @@ function DashboardPage() {
 
   return (
     <section className="monitoring-dashboard">
+      <div className="dashboard-decorative-circles">
+        <div className="decorative-circle circle-1"></div>
+        <div className="decorative-circle circle-2"></div>
+        <div className="decorative-circle circle-3"></div>
+        <div className="decorative-circle circle-4"></div>
+      </div>
       <div className="dashboard-header">
         <div>
           <h1>{buildingName}</h1>

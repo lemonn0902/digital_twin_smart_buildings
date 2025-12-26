@@ -926,8 +926,125 @@ section p {
   border: none;
 }
 
+/* Decorative Pink Circles */
+.monitoring-dashboard,
+.twin-view,
+.analytics {
+  position: relative;
+  overflow: visible;
+}
+
+.dashboard-decorative-circles {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 400px;
+  height: 400px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.decorative-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.35;
+  filter: blur(60px);
+  animation: float 8s ease-in-out infinite;
+}
+
+.decorative-circle.circle-1 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, #d946ef, #e879f9);
+  top: 0;
+  right: 0;
+  animation-delay: 0s;
+}
+
+.decorative-circle.circle-2 {
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, #9333ea, #a78bfa);
+  top: 40px;
+  right: 50px;
+  animation-delay: 2.5s;
+}
+
+.decorative-circle.circle-3 {
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, #e879f9, #f0abfc);
+  top: 100px;
+  right: 120px;
+  animation-delay: 5s;
+}
+
+.decorative-circle.circle-4 {
+  position: fixed;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, #d946ef, #e879f9);
+  bottom: 30px;
+  left: 30px;
+  animation-delay: 1.5s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate(15px, -20px) scale(1.1);
+    opacity: 0.4;
+  }
+}
+
+/* Ensure page content is above decorative circles */
+.monitoring-dashboard > *:not(.dashboard-decorative-circles),
+.twin-view > *:not(.dashboard-decorative-circles),
+.analytics > *:not(.dashboard-decorative-circles) {
+  position: relative;
+  z-index: 1;
+}
+
 @media (max-width: 640px) {
   .live-metric-row {
     grid-template-columns: 1fr;
+  }
+  
+  .dashboard-decorative-circles {
+    width: 250px;
+    height: 250px;
+    top: 10px;
+    right: 10px;
+  }
+  
+  .decorative-circle.circle-1 {
+    width: 150px;
+    height: 150px;
+    top: 0;
+    right: 0;
+  }
+  
+  .decorative-circle.circle-2 {
+    width: 100px;
+    height: 100px;
+    top: 20px;
+    right: 30px;
+  }
+  
+  .decorative-circle.circle-3 {
+    width: 70px;
+    height: 70px;
+    top: 50px;
+    right: 70px;
+  }
+  
+  .decorative-circle.circle-4 {
+    width: 80px;
+    height: 80px;
+    bottom: 15px;
+    left: 15px;
   }
 }
