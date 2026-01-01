@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from core.services.data_service import data_service
 from core.services.timeseries_service import timeseries_service
+from core.services.action_state_service import action_state_service
 from core.anomaly_engine.autoencoder_model import autoencoder_reconstruction_error
 from core.anomaly_engine.isolation_forest import isolation_forest_scores
 from core.suggestions_engine.smart_suggestions import suggestion_engine
@@ -38,6 +39,8 @@ class DashboardResponse(BaseModel):
     alerts: List[Dict]
     anomalies: List[Dict]
     suggestions: List[Dict]
+    applied_actions: List[Dict]
+    actions_version: int
 
 
 def _augment_time_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -243,6 +246,13 @@ async def dashboard_overview(building_id: str):
         
         df = df.sort_values("timestamp").reset_index(drop=True)
 
+        applied_actions = action_state_service.get_applied_actions(building_id)
+        actions_version = action_state_service.get_version(building_id)
+
+        total_applied_savings = float(
+            sum(a.get("estimated_savings_kwh", 0.0) for a in applied_actions)
+        )
+
         # Ensure required columns exist
         required_metrics = ["energy", "temperature", "occupancy"]
         for metric in required_metrics:
@@ -258,6 +268,22 @@ async def dashboard_overview(building_id: str):
         recent_df = df[df["timestamp"] >= last_24h_start].copy()
         if recent_df.empty:
             recent_df = df.tail(96).copy()  # fallback ~24h assuming 15m data
+
+        if not recent_df.empty and total_applied_savings > 0:
+            recent_energy_total = float(recent_df["energy"].sum())
+            if recent_energy_total > 0:
+                reduction_ratio = min(0.30, total_applied_savings / recent_energy_total)
+                recent_df["energy"] = recent_df["energy"] * (1.0 - reduction_ratio)
+
+        setpoint_targets = [
+            float(a.get("params", {}).get("setpoint_c_target"))
+            for a in applied_actions
+            if a.get("type") == "setpoint_change" and a.get("params", {}).get("setpoint_c_target") is not None
+        ]
+        if setpoint_targets and not recent_df.empty:
+            target = float(max(setpoint_targets))
+            current_avg = float(recent_df["temperature"].mean()) if not recent_df["temperature"].empty else target
+            recent_df["temperature"] = recent_df["temperature"] + 0.35 * (target - current_avg)
 
         chart_points = recent_df.copy()
         chart_points["carbon"] = chart_points["energy"] * EMISSION_FACTOR_T_PER_KWH
@@ -276,6 +302,11 @@ async def dashboard_overview(building_id: str):
         ]
 
         suggestions = suggestion_engine.generate_suggestions(building_id) if hasattr(suggestion_engine, "generate_suggestions") else []
+        suggestions = [
+            s
+            for s in suggestions
+            if not action_state_service.should_suppress_suggestion(building_id, s)
+        ]
 
         total_energy = float(recent_df["energy"].sum())
         avg_temp = float(recent_df["temperature"].mean())
@@ -355,6 +386,8 @@ async def dashboard_overview(building_id: str):
             "alerts": alerts,
             "anomalies": anomalies_payload,
             "suggestions": suggestions[:5],
+            "applied_actions": applied_actions,
+            "actions_version": actions_version,
         }
 
         return response

@@ -56,6 +56,20 @@ ZONE_PROFILES: Dict[str, Dict[str, float]] = {
 }
 
 
+def trim_leading_zero_energy_rows(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return df
+    if "energy" not in df.columns:
+        return df
+
+    energy = pd.to_numeric(df["energy"], errors="coerce").fillna(0.0)
+    non_zero_idx = energy.gt(0.0)
+    if not bool(non_zero_idx.any()):
+        return df
+    first_valid = int(non_zero_idx.idxmax())
+    return df.loc[first_valid:].reset_index(drop=True)
+
+
 def require_dataset() -> pd.DataFrame:
     """Ensure processed dataset exists and load it."""
     if not DEPLOYMENT_DATA.exists():
@@ -131,7 +145,30 @@ def build_points(row: pd.Series, building_id: str, timestamp_offset: Optional[ti
     else:
         timestamp = original_timestamp
     
-    energy = max(row.get("energy", 0.0), 0.0)
+    try:
+        energy = float(row.get("energy", 0.0))
+    except Exception:
+        energy = 0.0
+    if pd.isna(energy) or energy <= 0.0:
+        hour = int(timestamp.hour)
+        dayofweek = int(timestamp.weekday())
+        is_workday = 1.0 if dayofweek < 5 else 0.0
+        is_work_hours = 1.0 if 7 <= hour <= 19 else 0.0
+
+        occupancy_factor = float(np.clip(row.get("occupancy", 0.3), 0.0, 1.0))
+        temp_val = row.get("temperature")
+        try:
+            temp_float = float(temp_val) if not pd.isna(temp_val) else 22.0
+        except Exception:
+            temp_float = 22.0
+
+        base = 40.0 + 60.0 * is_workday * is_work_hours
+        occ_load = 40.0 * occupancy_factor
+        temp_load = max(0.0, abs(temp_float - 22.0)) * 3.0
+
+        seed = int(timestamp.strftime("%Y%m%d%H"))
+        noise = float(np.random.default_rng(seed).normal(0.0, 4.0))
+        energy = max(5.0, base + occ_load + temp_load + noise)
     temperature = row.get("temperature")
     humidity = row.get("humidity")
     occupancy = np.clip(row.get("occupancy", 0.3), 0.0, 1.0)
@@ -292,6 +329,7 @@ def parse_args():
 def main():
     args = parse_args()
     df = require_dataset()
+    df = trim_leading_zero_energy_rows(df)
     building_info = load_building_info()
     # Always use "demo-building" to match application queries
     # The application expects "demo-building" in all API endpoints

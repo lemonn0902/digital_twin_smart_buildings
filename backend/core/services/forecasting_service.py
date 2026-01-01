@@ -20,6 +20,7 @@ except ImportError:
 
 from core.utils.model_loader import get_model_path
 from core.services.timeseries_service import timeseries_service
+from core.services.action_state_service import action_state_service
 
 
 # Forecasting parameters (must match training script)
@@ -31,6 +32,40 @@ ENERGY_FEATURES = ["energy", "temperature", "humidity"]
 OCCUPANCY_SEQUENCE_LENGTH = 12  # Use 12 hours of history
 OCCUPANCY_FORECAST_HORIZON = 12  # Predict next 12 hours
 OCCUPANCY_FEATURES = ["occupancy", "hour_sin", "hour_cos", "dow_sin", "dow_cos", "energy"]
+
+
+def _apply_action_effects_to_energy_forecast(
+    building_id: str,
+    forecast_points: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    applied_actions = action_state_service.get_applied_actions(building_id)
+    if not applied_actions or not forecast_points:
+        return forecast_points
+
+    total_applied_savings = float(
+        sum(a.get("estimated_savings_kwh", 0.0) for a in applied_actions)
+    )
+    total_forecast_energy = float(
+        sum(float(p.get("energy_kwh") or 0.0) for p in forecast_points)
+    )
+    if total_forecast_energy <= 0.0 or total_applied_savings <= 0.0:
+        return forecast_points
+
+    reduction_ratio = min(0.30, total_applied_savings / total_forecast_energy)
+
+    adjusted = []
+    for p in forecast_points:
+        base_energy = float(p.get("energy_kwh") or 0.0)
+        new_energy = base_energy * (1.0 - reduction_ratio)
+        updated = dict(p)
+        updated["energy_kwh"] = float(new_energy)
+        if updated.get("confidence_lower") is not None:
+            updated["confidence_lower"] = float(updated["confidence_lower"]) * (1.0 - reduction_ratio)
+        if updated.get("confidence_upper") is not None:
+            updated["confidence_upper"] = float(updated["confidence_upper"]) * (1.0 - reduction_ratio)
+        adjusted.append(updated)
+
+    return adjusted
 
 
 @lru_cache(maxsize=1)
@@ -175,7 +210,9 @@ def forecast_energy_consumption(
     
     if model is None or scaler is None:
         # Fallback: generate synthetic forecast
-        return _generate_synthetic_forecast(building_id, horizon_hours)
+        result = _generate_synthetic_forecast(building_id, horizon_hours)
+        result["forecast"] = _apply_action_effects_to_energy_forecast(building_id, result.get("forecast", []))
+        return result
     
     # Get historical data
     historical_df = _prepare_historical_data(building_id, SEQUENCE_LENGTH)
@@ -237,6 +274,8 @@ def forecast_energy_consumption(
             }
             for ts, value in zip(forecast_timestamps, energy_forecast)
         ]
+
+        forecast_points = _apply_action_effects_to_energy_forecast(building_id, forecast_points)
         
         return {
             "forecast": forecast_points,
@@ -246,7 +285,9 @@ def forecast_energy_consumption(
     
     except Exception as e:
         # Fallback on any error
-        return _generate_synthetic_forecast(building_id, horizon_hours)
+        result = _generate_synthetic_forecast(building_id, horizon_hours)
+        result["forecast"] = _apply_action_effects_to_energy_forecast(building_id, result.get("forecast", []))
+        return result
 
 
 @lru_cache(maxsize=1)

@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { fetchEnergyForecast } from "../../services/api";
 
-function ForecastChart({ buildingId, horizonHours = 24 }) {
+function ForecastChart({ buildingId, horizonHours = 24, actionsVersion }) {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,7 +35,7 @@ function ForecastChart({ buildingId, horizonHours = 24 }) {
     if (buildingId) {
       loadForecast();
     }
-  }, [buildingId, horizonHours]);
+  }, [buildingId, horizonHours, actionsVersion]);
 
   if (loading) {
     return (

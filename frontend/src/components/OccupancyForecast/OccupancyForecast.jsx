@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { fetchOccupancyForecast } from "../../services/api";
 
-function OccupancyForecast({ buildingId, horizonHours = 12 }) {
+function OccupancyForecast({ buildingId, horizonHours = 12, actionsVersion }) {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,7 +35,7 @@ function OccupancyForecast({ buildingId, horizonHours = 12 }) {
     if (buildingId) {
       loadForecast();
     }
-  }, [buildingId, horizonHours]);
+  }, [buildingId, horizonHours, actionsVersion]);
 
   if (loading) {
     return (

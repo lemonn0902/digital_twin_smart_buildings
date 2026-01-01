@@ -50,6 +50,39 @@ export async function fetchSuggestions(buildingId) {
   return res.json();
 }
 
+export async function applySuggestion(buildingId, suggestion) {
+  const res = await fetch(`${BASE}/suggestions/apply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      building_id: buildingId,
+      suggestion,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to apply suggestion");
+  return res.json();
+}
+
+export async function dismissSuggestion(buildingId, suggestionId, suggestion) {
+  const res = await fetch(`${BASE}/suggestions/dismiss`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      building_id: buildingId,
+      suggestion_id: suggestionId,
+      suggestion,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to dismiss suggestion");
+  return res.json();
+}
+
+export async function fetchAppliedActions(buildingId) {
+  const res = await fetch(`${BASE}/suggestions/applied/${buildingId}`);
+  if (!res.ok) throw new Error("Failed to fetch applied actions");
+  return res.json();
+}
+
 export async function fetchDashboardOverview(buildingId) {
   const res = await fetch(`${BASE}/dashboard/overview/${buildingId}`);
   if (!res.ok) throw new Error("Failed to load dashboard overview");

@@ -17,6 +17,8 @@ import OccupancyForecast from "../components/OccupancyForecast/OccupancyForecast
 import {
   fetchDashboardOverview,
   fetchLatestMetrics,
+  applySuggestion,
+  dismissSuggestion,
 } from "../services/api";
 
 function formatLabel(label) {
@@ -81,12 +83,14 @@ function DashboardPage() {
   const [latest, setLatest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [busySuggestionId, setBusySuggestionId] = useState(null);
+  const buildingId = "demo-building";
 
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
-        const data = await fetchDashboardOverview("demo-building");
+        const data = await fetchDashboardOverview(buildingId);
         setOverview(data);
       } catch (err) {
         setError(err.message || "Failed to load dashboard");
@@ -95,13 +99,18 @@ function DashboardPage() {
       }
     }
     load();
-  }, []);
+  }, [buildingId]);
+
+  async function reloadOverview() {
+    const data = await fetchDashboardOverview(buildingId);
+    setOverview(data);
+  }
 
   useEffect(() => {
     let timer;
     async function pollLatest() {
       try {
-        const data = await fetchLatestMetrics("demo-building");
+        const data = await fetchLatestMetrics(buildingId);
         setLatest(data);
       } catch (err) {
         // Ignore transient polling errors
@@ -111,7 +120,31 @@ function DashboardPage() {
     pollLatest();
     timer = setInterval(pollLatest, 10000);
     return () => clearInterval(timer);
-  }, []);
+  }, [buildingId]);
+
+  async function handleApplySuggestion(suggestion) {
+    try {
+      setBusySuggestionId(suggestion.id);
+      await applySuggestion(buildingId, suggestion);
+      await reloadOverview();
+    } catch (err) {
+      setError(err.message || "Failed to apply suggestion");
+    } finally {
+      setBusySuggestionId(null);
+    }
+  }
+
+  async function handleDismissSuggestion(suggestion) {
+    try {
+      setBusySuggestionId(suggestion.id);
+      await dismissSuggestion(buildingId, suggestion.id, suggestion);
+      await reloadOverview();
+    } catch (err) {
+      setError(err.message || "Failed to dismiss suggestion");
+    } finally {
+      setBusySuggestionId(null);
+    }
+  }
 
   const chartData = useMemo(() => overview?.charts || [], [overview]);
 
@@ -278,18 +311,24 @@ function DashboardPage() {
 
           <div className="dashboard-charts-row">
             <div className="chart-card">
-              <ForecastChart buildingId="demo-building" horizonHours={24} />
+              <ForecastChart buildingId={buildingId} horizonHours={24} actionsVersion={overview?.actions_version} />
             </div>
           </div>
 
           <div className="dashboard-charts-row">
             <div className="chart-card">
-              <OccupancyForecast buildingId="demo-building" horizonHours={12} />
+              <OccupancyForecast buildingId={buildingId} horizonHours={12} actionsVersion={overview?.actions_version} />
             </div>
           </div>
 
           <div className="card suggestions-card">
-            <Suggestions suggestions={overview?.suggestions || []} />
+            <Suggestions
+              suggestions={overview?.suggestions || []}
+              appliedActions={overview?.applied_actions || []}
+              onApply={handleApplySuggestion}
+              onDismiss={handleDismissSuggestion}
+              busySuggestionId={busySuggestionId}
+            />
           </div>
         </>
       )}
