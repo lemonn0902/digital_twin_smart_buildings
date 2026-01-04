@@ -87,7 +87,30 @@ export async function fetchAppliedActions(buildingId) {
 
 export async function fetchDashboardOverview(buildingId) {
   const res = await fetch(`${BASE}/dashboard/overview/${buildingId}`);
-  if (!res.ok) throw new Error("Failed to load dashboard overview");
+  if (!res.ok) throw new Error("Failed to fetch dashboard overview");
+  return res.json();
+}
+
+// Chat API functions
+export async function sendChatMessage(request) {
+  const res = await fetch(`${BASE}/chat/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!res.ok) throw new Error("Failed to send chat message");
+  return res.json();
+}
+
+export async function getChatModels() {
+  const res = await fetch(`${BASE}/chat/models`);
+  if (!res.ok) throw new Error("Failed to fetch chat models");
+  return res.json();
+}
+
+export async function checkOllamaHealth() {
+  const res = await fetch(`${BASE}/chat/health`);
+  if (!res.ok) throw new Error("Failed to check Ollama health");
   return res.json();
 }
 

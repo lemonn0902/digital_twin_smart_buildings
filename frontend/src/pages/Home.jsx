@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Chatbot from "../components/Chatbot/Chatbot";
 import "../styles/homepage.css";
 
 function Home() {
@@ -31,10 +32,10 @@ function Home() {
   const handleSearch = (e) => {
     e.preventDefault();
     const queryParams = new URLSearchParams();
-    
+
     if (selectedZone) queryParams.append("zone", selectedZone);
     if (floor) queryParams.append("floor", floor);
-    
+
     // Navigate to dashboard with search parameters
     navigate(`/dashboard?${queryParams.toString()}`);
   };
@@ -127,6 +128,8 @@ function Home() {
           </div>
         </div>
       </section>
+      {/* Chatbot */}
+      <Chatbot />
     </div>
   );
 }
