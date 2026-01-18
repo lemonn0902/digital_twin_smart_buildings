@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "../styles/building-info.css";
 
+const BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "/api";
+
 function ZonesAndFloors() {
   const [zones, setZones] = useState([]);
   const [selectedFloor, setSelectedFloor] = useState(1);
@@ -15,7 +17,7 @@ function ZonesAndFloors() {
 
   const fetchZoneData = async () => {
     try {
-      const response = await fetch("/layout/demo-building");
+      const response = await fetch(`${BASE}/layout/demo-building`);
       if (!response.ok) throw new Error("Failed to fetch zone data");
       const data = await response.json();
       setZones(data.zones || getDefaultZones());
@@ -29,7 +31,7 @@ function ZonesAndFloors() {
 
   const fetchEnvironmentalData = async () => {
     try {
-      const response = await fetch("/historical/latest/demo-building");
+      const response = await fetch(`${BASE}/historical/latest/demo-building`);
       if (response.ok) {
         const data = await response.json();
         setEnvData(data);

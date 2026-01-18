@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     influxdb_token: str = ""
     influxdb_org: str = "digital-twin"
     influxdb_bucket: str = "building_telemetry"
+    influxdb_verify_ssl: bool = True
     
     # Neo4j (for graph-based layout)
     neo4j_uri: str = "bolt://localhost:7687"

@@ -239,8 +239,8 @@ def seed_historical_data(df: pd.DataFrame, write_api, bucket: str, org: str, bui
         # Get the first timestamp from the dataset (likely 2016)
         first_timestamp = df["timestamp"].iloc[0].to_pydatetime()
         
-        # Map to start 60 days ago (ensures data is in "last 30 days" range)
-        target_start = datetime.now() - timedelta(days=60)
+        # Map to start 29 days ago (within 30-day retention period, leaves 1 day buffer)
+        target_start = datetime.now() - timedelta(days=29)
         
         # Calculate offset
         timestamp_offset = target_start - first_timestamp
@@ -251,15 +251,17 @@ def seed_historical_data(df: pd.DataFrame, write_api, bucket: str, org: str, bui
     print(f"Seeding {total_rows} rows into InfluxDB...")
 
     batch: List[Point] = []
-    batch_size = 5_000
+    batch_size = 500  # Reduced from 5000 to avoid rate limits on free tier
 
     for idx, row in df.head(total_rows).iterrows():
         batch.extend(build_points(row, building_id, timestamp_offset))
         if len(batch) >= batch_size:
             write_api.write(bucket=bucket, org=org, record=batch)
             batch = []
-            if idx % 1000 == 0:
+            if idx % 100 == 0:
                 print(f"  wrote {idx + 1} rows...")
+            # Add delay to avoid rate limits on free tier
+            time.sleep(0.5)
 
     if batch:
         write_api.write(bucket=bucket, org=org, record=batch)

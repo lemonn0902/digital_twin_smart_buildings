@@ -30,7 +30,8 @@ def get_influx_client() -> InfluxDBClient:
             url=settings.influxdb_url,
             token=settings.influxdb_token,
             org=settings.influxdb_org,
-            timeout=30_000
+            timeout=30_000,
+            verify_ssl=settings.influxdb_verify_ssl
         )
     return _influx_client
 

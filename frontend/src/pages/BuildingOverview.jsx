@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "../styles/building-info.css";
 
+const BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "/api";
+
 function BuildingOverview() {
   const [buildingData, setBuildingData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,7 +15,7 @@ function BuildingOverview() {
   const fetchBuildingData = async () => {
     try {
       // Fetch from backend dashboard endpoint which includes building info
-      const response = await fetch("/api/v1/dashboard/overview/demo-building");
+      const response = await fetch(`${BASE}/dashboard/overview/demo-building`);
       if (!response.ok) throw new Error("Failed to fetch building data");
       const data = await response.json();
       setBuildingData(data.building || {});

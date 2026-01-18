@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "../styles/building-info.css";
 
+const BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "/api";
+
 function BuildingSystems() {
   const [systemsData, setSystemsData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,7 +14,7 @@ function BuildingSystems() {
   const fetchSystemsData = async () => {
     try {
       // Try to fetch from dashboard for real data
-      const response = await fetch("/api/v1/dashboard/overview/demo-building");
+      const response = await fetch(`${BASE}/dashboard/overview/demo-building`);
       if (!response.ok) throw new Error("Failed to fetch systems data");
       const data = await response.json();
       setSystemsData(data);

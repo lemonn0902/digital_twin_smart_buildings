@@ -4,12 +4,14 @@ import { OrbitControls, Text, Grid, Line } from "@react-three/drei";
 import * as THREE from "three";
 import { fetchLatestMetrics } from "../../services/api";
 
+const BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "/api";
+
 // Helper function to fetch historical data
 async function fetchHistoricalData(buildingId, zoneId, metrics, hours) {
   const endTime = new Date();
   const startTime = new Date(endTime.getTime() - hours * 60 * 60 * 1000);
   
-  const response = await fetch("/api/historical/query", {
+  const response = await fetch(`${BASE}/historical/query`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
