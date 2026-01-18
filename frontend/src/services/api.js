@@ -1,4 +1,7 @@
-const BASE = "/api";
+// Use VITE_API_URL when provided (production) otherwise fall back to local proxy '/api'
+const rawBase = import.meta.env.VITE_API_URL || "/api";
+// Remove trailing slash for consistent URL joining
+const BASE = rawBase.replace(/\/$/, "");
 
 export async function runSimulation(buildingId, startTime, endTime, resolutionMinutes = 60) {
   const res = await fetch(`${BASE}/simulation/run`, {

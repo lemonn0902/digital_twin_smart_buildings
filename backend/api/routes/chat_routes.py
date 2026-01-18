@@ -28,8 +28,8 @@ class ChatResponse(BaseModel):
     model: str
     timestamp: datetime
 
-# Ollama configuration
-OLLAMA_BASE_URL = "http://localhost:11434"  # Default Ollama endpoint
+# Ollama configuration (read from env so deployments can configure reachable host)
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")  # Default Ollama endpoint
 
 # Initialize data service
 data_service = DataService()
@@ -235,12 +235,11 @@ async def check_ollama_health():
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get(f"{OLLAMA_BASE_URL}/api/version")
-            
             if response.status_code == 200:
                 version = response.json().get("version", "unknown")
                 return {"status": "healthy", "version": version}
             else:
-                return {"status": "unhealthy", "error": "Ollama not responding"}
-                
-    except httpx.RequestError:
-        return {"status": "unhealthy", "error": "Could not connect to Ollama"}
+                return {"status": "unhealthy", "error": f"Ollama responded with status {response.status_code}"}
+
+    except httpx.RequestError as e:
+        return {"status": "unhealthy", "error": f"Could not connect to Ollama: {str(e)}"}
