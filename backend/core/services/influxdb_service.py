@@ -186,25 +186,44 @@ def get_latest_value(
 
 
 async def check_influxdb_health() -> Dict[str, Any]:
-    """Check InfluxDB connection and health."""
+    """Check InfluxDB connection and health by attempting a simple query."""
     try:
         client = get_influx_client()
-        # Try a simple health check
-        health = client.api.HealthApi().health()
-        logger.info(f"InfluxDB health check passed: {health.status}")
+        query_api = get_query_api()
+        
+        # Try a simple test query to verify connection
+        test_query = f'''
+        from(bucket: "{settings.influxdb_bucket}")
+          |> range(start: -1h)
+          |> limit(n: 1)
+        '''
+        
+        logger.info("Testing InfluxDB connection with test query...")
+        result = query_api.query_data_frame(test_query)
+        
+        logger.info(f"✅ InfluxDB connection successful")
         return {
             "status": "healthy",
             "provider": "InfluxDB",
             "url": settings.influxdb_url,
-            "details": str(health.status)
+            "bucket": settings.influxdb_bucket,
+            "message": "Connection successful"
         }
     except Exception as e:
-        logger.error(f"InfluxDB health check failed: {e}")
+        logger.error(f"❌ InfluxDB health check failed: {e}", exc_info=True)
         return {
             "status": "unhealthy",
             "provider": "InfluxDB",
             "url": settings.influxdb_url,
-            "error": str(e)
+            "bucket": settings.influxdb_bucket,
+            "error": str(e),
+            "troubleshooting": [
+                "1. Check if InfluxDB URL is correct and accessible",
+                "2. Check if INFLUXDB_TOKEN is valid",
+                "3. Check if INFLUXDB_ORG is correct",
+                "4. Check if INFLUXDB_BUCKET exists",
+                "5. Verify network connection to InfluxDB cloud"
+            ]
         }
 
 
