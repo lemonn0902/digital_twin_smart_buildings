@@ -20,7 +20,7 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
-    model: str = "mistralai/Mistral-7B-Instruct-v0.1"  # Default HuggingFace model
+    model: str = "google/flan-t5-base"  # Free tier reliable model
     stream: bool = False
 
 class ChatResponse(BaseModel):
@@ -33,7 +33,7 @@ HF_API_TOKEN = os.getenv("HUGGINGFACE_API_KEY")
 if not HF_API_TOKEN:
     raise ValueError("HUGGINGFACE_API_KEY environment variable is required")
 
-HF_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1"
+HF_API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-base"
 HF_HEADERS = {"Authorization": f"Bearer {HF_API_TOKEN}"}
 
 # Initialize data service
@@ -220,11 +220,11 @@ async def list_models():
     """
     List available Hugging Face models
     """
-    # Return a curated list of fast, lightweight models suitable for building management
+    # Free tier reliable models
     models = [
-        "mistralai/Mistral-7B-Instruct-v0.1",
-        "meta-llama/Llama-2-7b-chat-hf",
-        "tiiuae/falcon-7b-instruct",
+        "google/flan-t5-base",
+        "google/flan-t5-large",
+        "distilgpt2",
     ]
     return {"models": models}
 

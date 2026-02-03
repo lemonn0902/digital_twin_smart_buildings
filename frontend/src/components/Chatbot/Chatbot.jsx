@@ -13,7 +13,7 @@ function Chatbot() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [models, setModels] = useState([]);
-    const [selectedModel, setSelectedModel] = useState("mistralai/Mistral-7B-Instruct-v0.1");
+    const [selectedModel, setSelectedModel] = useState("google/flan-t5-base");
     const [isHuggingFaceHealthy, setIsHuggingFaceHealthy] = useState(true);
     const [isMinimized, setIsMinimized] = useState(false);
     const messagesEndRef = useRef(null);
