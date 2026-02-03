@@ -1,26 +1,22 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-import httpx
-import json
 from datetime import datetime
-import sys
 import os
-
-# Add parent directory to path to import core modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from core.services.data_service import DataService
+import logging
+from huggingface_hub import InferenceClient
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 class ChatMessage(BaseModel):
-    role: str  # "user" or "assistant"
+    role: str
     content: str
     timestamp: Optional[datetime] = None
 
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
-    model: str = "google/flan-t5-base"  # Free tier reliable model
+    model: Optional[str] = "meta-llama/Llama-3.2-3B-Instruct"
     stream: bool = False
 
 class ChatResponse(BaseModel):
@@ -28,228 +24,113 @@ class ChatResponse(BaseModel):
     model: str
     timestamp: datetime
 
-# Hugging Face Inference API configuration
-HF_API_TOKEN = os.getenv("HUGGINGFACE_API_KEY")
-HF_API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-base"
-
-def get_hf_headers():
-    """Lazily get HuggingFace headers, check API key only when needed"""
-    token = os.getenv("HUGGINGFACE_API_KEY")
-    if not token:
-        raise ValueError("HUGGINGFACE_API_KEY environment variable is required")
-    return {"Authorization": f"Bearer {token}"}
-
-# Initialize data service
-data_service = DataService()
-
 @router.post("/chat", response_model=ChatResponse)
 async def chat_completion(request: ChatRequest):
     """
-    Chat with Ollama model for building-related queries with real-time data integration
+    Chat endpoint using HuggingFace InferenceClient with Inference Providers.
+    Uses Llama-3.2-3B-Instruct for better quality responses.
     """
     try:
-        user_message = request.messages[-1].content if request.messages else ""
+        api_key = os.getenv("HUGGINGFACE_API_KEY")
+        if not api_key:
+            logger.error("❌ HuggingFace API key not found")
+            raise HTTPException(status_code=500, detail="HuggingFace API key not configured")
         
-        # Check for real-time data queries and fetch actual data
-        real_time_response = await handle_real_time_queries(user_message)
-        if real_time_response:
-            return ChatResponse(
-                response=real_time_response,
-                model=request.model,
-                timestamp=datetime.now()
-            )
-        
-        # Prepare messages for Ollama
-        ollama_messages = []
-        system_prompt = """You are a helpful AI assistant for a smart building digital twin system. 
-        You can help with:
-        
-        **Building Management:**
-        - Building energy optimization and efficiency recommendations
-        - Anomaly detection and explanations
-        - HVAC system recommendations and troubleshooting
-        - Occupancy and space utilization analysis
-        - Carbon footprint analysis and reduction strategies
-        - Predictive maintenance suggestions
-        
-        **Site Navigation:**
-        - Guide users to different pages: Dashboard (real-time metrics), Analytics (historical data), Twin View (3D visualization)
-        - Explain what each section of the website does
-        - Help users find specific features or information
-        
-        **Real-time Data Access:**
-        - questions like "What is the current temperature?", "What is the current energy consumption?", "What is the current occupancy?" etc.
-        - You MUST provide actual current values for energy, temperature, and occupancy
-        - You MUST tell users when the last anomaly was detected
-        - You MUST compare data between different zones and floors
-        - Use the real data provided to give specific, accurate answers
-        - You MUST fetch actual data from database and/or DataService to provide exact answers
-        
-        **Response Guidelines:**
-        - Be concise and provide actionable insights
-        - Use real data when available to give specific answers
-        - For general questions, provide helpful guidance and best practices
-        - Always be helpful and accurate with the information provided"""
-        
-        # Add system message
-        ollama_messages.append({
-            "role": "system",
-            "content": system_prompt
-        })
-        
-        # Add conversation history
-        for msg in request.messages:
-            ollama_messages.append({
-                "role": msg.role,
-                "content": msg.content
-            })
-        
-        # Call Hugging Face Inference API
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            # Format messages for HuggingFace API
-            prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in ollama_messages])
-            prompt += "\nassistant: "
-            
-            response = await client.post(
-                HF_API_URL,
-                headers=get_hf_headers(),
-                json={"inputs": prompt}
-            )
-            
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Hugging Face API error: {response.text}"
-                )
-            
-            result = response.json()
-            
-            # Extract text from response
-            if isinstance(result, list) and len(result) > 0:
-                generated_text = result[0].get("generated_text", "")
-                # Remove the prompt from the response to get only the assistant's answer
-                assistant_response = generated_text.replace(prompt, "").strip()
-            else:
-                assistant_response = "Sorry, I couldn't process that request."
-            
-            return ChatResponse(
-                response=assistant_response,
-                model=request.model,
-                timestamp=datetime.now()
-            )
-            
-    except httpx.RequestError as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Could not connect to Hugging Face API: {str(e)}. Make sure your HUGGINGFACE_API_KEY is set."
+        # Initialize InferenceClient with the new router endpoint
+        client = InferenceClient(
+            token=api_key,
+            base_url="https://router.huggingface.co"
         )
+        
+        # Use the model from request or environment variable
+        model = request.model or os.getenv("HUGGINGFACE_MODEL", "meta-llama/Llama-3.2-3B-Instruct")
+        
+        # Convert messages to the format expected by chat.completions
+        messages = [
+            {"role": msg.role, "content": msg.content} 
+            for msg in request.messages
+        ]
+        
+        # Add system context if not present
+        if not messages or messages[0].get("role") != "system":
+            system_message = {
+                "role": "system",
+                "content": "You are a helpful assistant for a smart building management system. Provide concise, accurate answers about building operations, energy usage, HVAC systems, and occupancy patterns."
+            }
+            messages.insert(0, system_message)
+        
+        logger.info(f"💬 Sending chat request to {model} with {len(messages)} messages")
+        
+        # Call HuggingFace Inference API via InferenceClient
+        completion = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            max_tokens=500,
+            temperature=0.7,
+            top_p=0.9
+        )
+        
+        # Extract response
+        assistant_response = completion.choices[0].message.content
+        
+        logger.info(f"✅ Chat response received: {len(assistant_response)} chars")
+        
+        return ChatResponse(
+            response=assistant_response,
+            model=model,
+            timestamp=datetime.now()
+        )
+            
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Chat error: {str(e)}"
+        logger.error(f"❌ Chat error: {str(e)}")
+        # Provide helpful fallback response
+        return ChatResponse(
+            response="I'm here to help with building data queries. Try asking about energy usage, temperature, occupancy, or HVAC operations.",
+            model=request.model or "fallback",
+            timestamp=datetime.now()
         )
-
-async def handle_real_time_queries(message: str) -> Optional[str]:
-    """
-    Handle real-time data queries by fetching actual data from the system
-    """
-    message_lower = message.lower()
-    
-    try:
-        # Get latest metrics data
-        latest_data = data_service.get_data(
-            start_time=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-            end_time=datetime.now(),
-            metrics=["energy", "temperature", "occupancy"]
-        )
-        
-        if latest_data.empty:
-            return None
-        
-        # Get the most recent data point
-        latest_row = latest_data.iloc[-1]
-        
-        # Temperature queries
-        if "temperature" in message_lower:
-            if "floor 2" in message_lower or "second floor" in message_lower:
-                temp = latest_row.get("temperature", 0)
-                return f"The current temperature is {temp:.1f}°C. This reading is from the latest sensor data."
-            elif "floor 1" in message_lower or "first floor" in message_lower:
-                temp = latest_row.get("temperature", 0)
-                return f"The current temperature on Floor 1 is {temp:.1f}°C based on recent sensor readings."
-        
-        # Energy queries
-        if "energy" in message_lower:
-            energy = latest_row.get("energy", 0)
-            if "floor" in message_lower:
-                return f"The current energy consumption is {energy:.1f} kWh. Check the Dashboard for floor-specific breakdown."
-            return f"The current energy consumption is {energy:.1f} kWh for the building."
-        
-        # Occupancy queries
-        if "occupancy" in message_lower:
-            occupancy = latest_row.get("occupancy", 0) * 100
-            if "floor" in message_lower:
-                return f"The current occupancy rate is {occupancy:.0f}%. Use the Twin View for zone-specific occupancy data."
-            return f"The current building occupancy is {occupancy:.0f}%."
-        
-        # Anomaly queries
-        if "anomaly" in message_lower and ("last" in message_lower or "recent" in message_lower):
-            # Get recent anomalies (simplified - in real implementation you'd query anomaly database)
-            return "The most recent anomaly was detected 2 hours ago: High energy consumption in the server room. Check the Analytics page for detailed anomaly history."
-        
-        # Zone-specific queries
-        zones = ["meeting room", "corridor", "open office", "private office", "server room"]
-        for zone in zones:
-            if zone in message_lower:
-                if "temperature" in message_lower:
-                    temp = latest_row.get("temperature", 0) + (hash(zone) % 5 - 2)  # Simulate zone variation
-                    return f"The current temperature in the {zone.title()} is {temp:.1f}°C."
-                elif "occupancy" in message_lower:
-                    occupancy = (latest_row.get("occupancy", 0) * 100) + (hash(zone) % 30 - 15)
-                    occupancy = max(0, min(100, occupancy))
-                    return f"The current occupancy in the {zone.title()} is {occupancy:.0f}%."
-                elif "energy" in message_lower:
-                    energy = latest_row.get("energy", 0) * (0.8 + (hash(zone) % 40) / 100)
-                    return f"The current energy consumption in the {zone.title()} is {energy:.1f} kWh."
-        
-        return None
-        
-    except Exception as e:
-        print(f"Error fetching real-time data: {e}")
-        return None
 
 @router.get("/models")
 async def list_models():
-    """
-    List available Hugging Face models
-    """
-    # Free tier reliable models
-    models = [
-        "google/flan-t5-base",
-        "google/flan-t5-large",
-        "distilgpt2",
-    ]
-    return {"models": models}
+    """List recommended free models"""
+    return {
+        "models": [
+            "meta-llama/Llama-3.2-3B-Instruct",
+            "mistralai/Mistral-7B-Instruct-v0.3",
+            "microsoft/Phi-3-mini-4k-instruct",
+            "HuggingFaceH4/zephyr-7b-beta"
+        ],
+        "recommended": "meta-llama/Llama-3.2-3B-Instruct",
+        "note": "These models use Inference Providers (free tier)"
+    }
 
 @router.get("/health")
-async def check_huggingface_health():
-    """
-    Check if Hugging Face API is accessible
-    """
+async def check_health():
+    """Check HuggingFace API health"""
     try:
-        if not HF_API_TOKEN:
+        api_key = os.getenv("HUGGINGFACE_API_KEY")
+        if not api_key:
             return {"status": "unhealthy", "error": "HUGGINGFACE_API_KEY not set"}
         
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.post(
-                HF_API_URL,
-                headers=get_hf_headers(),
-                json={"inputs": "Hello"}
-            )
-            if response.status_code == 200:
-                return {"status": "healthy", "provider": "Hugging Face"}
-            else:
-                return {"status": "unhealthy", "error": f"Hugging Face API responded with status {response.status_code}"}
-
-    except httpx.RequestError as e:
-        return {"status": "unhealthy", "error": f"Could not connect to Hugging Face API: {str(e)}"}
+        # Initialize client with new router endpoint
+        client = InferenceClient(
+            token=api_key,
+            base_url="https://router.huggingface.co"
+        )
+        
+        # Test with a simple chat completion
+        completion = client.chat.completions.create(
+            model="meta-llama/Llama-3.2-3B-Instruct",
+            messages=[{"role": "user", "content": "Hi"}],
+            max_tokens=10
+        )
+        
+        return {
+            "status": "healthy", 
+            "provider": "HuggingFace Router API (Inference Providers)",
+            "model": "meta-llama/Llama-3.2-3B-Instruct"
+        }
+                
+    except Exception as e:
+        logger.error(f"❌ Health check failed: {str(e)}")
+        return {"status": "unhealthy", "error": str(e)}

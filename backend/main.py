@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
+import os
 from dotenv import load_dotenv
 
 from api.api_gateway import include_api_routes
@@ -13,9 +14,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Load environment variables
-load_dotenv()
-logger.info("Environment variables loaded")
+# Load environment variables - try .env.local first, then .env
+env_file = '.env.local' if os.path.exists('.env.local') else '.env'
+load_dotenv(env_file)
+logger.info(f"Environment variables loaded from {env_file}")
 
 def create_app() -> FastAPI:
     """
