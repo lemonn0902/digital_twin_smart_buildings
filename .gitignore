@@ -36,4 +36,4 @@ dist/
 # backend/models/forecasting/*.pkl
 # backend/models/forecasting/*.h5
 
-.env.local
+backend/.env.local
