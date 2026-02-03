@@ -18,4 +18,5 @@ COPY . .
 EXPOSE 8000
 
 # Run with gunicorn (production) or uvicorn (development)
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "main:app"]
+# Use 1 worker for free tier (512MB RAM limit)
+CMD ["gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "main:app"]
